@@ -1,0 +1,39 @@
+version: '3.7'
+services:
+  mongodb:
+    image: mongo
+    restart: always
+    ports:
+      - 27017:27017
+    volumes:
+      - mango_data:/data/
+#    environment:
+#      MONGO_INITDB_ROOT_USERNAME: ${DB_USER}
+#      MONGO_INITDB_ROOT_PASSWORD: ${DB_PASSWORD}
+
+  mongo-express:
+    image: mongo-express
+    restart: always
+    ports:
+      - "8082:8081"
+    environment:
+      #      ME_CONFIG_MONGODB_ADMINUSERNAME: root
+      #      ME_CONFIG_MONGODB_ADMINPASSWORD: example
+      ME_CONFIG_MONGODB_SERVER: mongodb
+      ME_CONFIG_BASICAUTH_USERNAME: admin
+      ME_CONFIG_BASICAUTH_PASSWORD: hard_pass
+
+
+  bot:
+    build: ./Telegram_bot_mongo
+    links:
+      - mongodb
+    env_file:
+      - ./.env
+    depends_on:
+      - mongodb
+    command: sh -c "python import_data.py && python bot.py"
+
+
+volumes:
+  mango_data:
